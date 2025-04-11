@@ -113,3 +113,37 @@ input_weight = st.number_input("Weight", float(df['weight'].min()), float(df['we
 input_hp = st.number_input("Horsepower", float(df['horsepower'].min()), float(df['horsepower'].max()), float(df['horsepower'].mean()))
 predicted_mpg = reg_model.predict(np.array([[input_weight, input_hp]]))[0]
 st.success(f"Predicted MPG: {predicted_mpg:.2f}")
+
+# -------------------- Clustering Section --------------------
+st.header("🔍 Clustering: Grouping Cars by Performance")
+
+# Sidebar slider to choose number of clusters (k)
+num_clusters = st.sidebar.slider("Number of Clusters (K-Means)", min_value=2, max_value=10, value=3)
+
+# Prepare clustering data (select relevant features and scale them)
+cluster_data = filtered_df[['horsepower', 'weight', 'mpg']].dropna()
+scaler = StandardScaler()
+scaled_cluster_data = scaler.fit_transform(cluster_data)
+
+# Apply K-Means
+kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+cluster_labels = kmeans.fit_predict(scaled_cluster_data)
+cluster_data['cluster'] = cluster_labels
+
+# Scatter plot: Horsepower vs MPG, colored by cluster
+st.subheader("Cluster Visualization: Horsepower vs MPG")
+fig6, ax6 = plt.subplots()
+sns.scatterplot(data=cluster_data, x='horsepower', y='mpg', hue='cluster', palette='tab10', ax=ax6)
+plt.xlabel("Horsepower")
+plt.ylabel("MPG")
+plt.title(f"K-Means Clustering with {num_clusters} Clusters")
+st.pyplot(fig6)
+
+# Optional insights summary
+st.markdown("#### Observations")
+st.markdown("""
+- Clusters help reveal hidden patterns, such as:
+  - Cars with **high horsepower and low MPG** tend to cluster together (less fuel-efficient).
+  - Cars with **low horsepower and high MPG** often form a separate cluster (eco-friendly).
+- Try adjusting the number of clusters to explore how different groups emerge!
+""")
